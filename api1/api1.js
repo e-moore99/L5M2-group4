@@ -9,8 +9,9 @@ const test1 = {
 
 let result = [];
 let output = 0;
-const modelToNum = (model) => {
-  console.log(model)
+let insuranceCost = 0;
+const modelToNum = (model, year) => {
+  console.log(`model: `+model)
   let carModel = model.toLowerCase().split('');
   alphabet.map((letter, i) => {
     carModel.map((word, l) => {
@@ -22,12 +23,13 @@ const modelToNum = (model) => {
 for (let i = 0; i < result.length; i++) {
   output += result[i]
 }
-  return output
+insuranceCost = output *100 + year;
+console.log(`insurance cost`+insuranceCost)
+  return insuranceCost
 }
 
 // console.log(model)
-console.log(test1)
-console.log(result)
-console.log(output)
+// console.log(test1)
+console.log(`insurance cost`+ insuranceCost)
 
 module.exports = { modelToNum }
