@@ -1,16 +1,16 @@
 const request = require("supertest");
 const app = require("./claims");
 
-// ! these are unit tests for each function in claims.js
+// ! these are unit tests for function in claims.js
 
-const {} = require("./claims");
+const { cleanText, claimsRating, ratingResponse } = require("./claims");
 
 // returns array without capitals, punctuation, numbers or spaces
 describe("cleanText function", () => {
   it("should convert input to lowercase then remove punctuation, symbols, numerals and spaces", () => {
     const input = "CraSH! Sma4sh3, sM4sh, Collided? coll.ide";
     const expected = ["crash", "smash", "smsh", "collided", "collide"];
-    expect(app.cleanText(input)).toEqual(expected);
+    expect(cleanText(input)).toEqual(expected);
   });
 });
 
@@ -18,50 +18,50 @@ describe("cleanText function", () => {
 describe("claimsRating function", () => {
   it("should count elements that equal those in the keyword array while ignoring all else", () => {
     const input = ["i", "crashed", "bucket", "smash", "smsh", "collided", "collide", "collider"];
-    const rating = app.claimsRating(input);
+    const rating = claimsRating(input);
     expect(rating).toEqual(4);
   });
   it("should count valid elements even if they are repeated", () => {
     const input = ["crash", "crash", "smash", "crash", "scratched"];
-    const rating = app.claimsRating(input);
+    const rating = claimsRating(input);
     expect(rating).toEqual(5);
   });
   it("should return a count of 0 if an array is sent but no keywords match", () => {
     const input = ["apple", "mango", "banana"];
-    const rating = app.claimsRating(input);
+    const rating = claimsRating(input);
     expect(rating).toEqual(0);
   });
 });
 
-// matches the rating to a descriptive response
+// matches the generated rating to a descriptive response
 describe("ratingResponse function", () => {
   it("should return a 'Risk Rating: (rating)' if the rating equals 1 to 5", () => {
     const ratingLow = 1;
-    const responseLow = app.ratingResponse(ratingLow);
+    const responseLow = ratingResponse(ratingLow);
     expect(responseLow).toContain("Risk Rating: 1");
 
     const ratingMid = 3;
-    const responseMid = app.ratingResponse(ratingMid);
+    const responseMid = ratingResponse(ratingMid);
     expect(responseMid).toContain("Risk Rating: 3");
 
     const ratingHigh = 5;
-    const responseHigh = app.ratingResponse(ratingHigh);
+    const responseHigh = ratingResponse(ratingHigh);
     expect(responseHigh).toContain("Risk Rating: 5");
   });
 
   it("should return 'No claims keywords found' if the rating equals 0", () => {
     const ratingNone = 0;
-    const responseNone = app.ratingResponse(ratingNone);
+    const responseNone = ratingResponse(ratingNone);
     expect(responseNone).toContain("No claims keywords found.");
   });
 
   it("should return 'Risk Rating: 6 or more; review/deny cover' if the rating is more than 5", () => {
     const ratingTooHigh = 6;
-    const responseTooHigh = app.ratingResponse(ratingTooHigh);
+    const responseTooHigh = ratingResponse(ratingTooHigh);
     expect(responseTooHigh).toContain("Risk Rating: 6 or more; review/deny cover.");
 
     const ratingInsane = 12;
-    const responseInsane = app.ratingResponse(ratingInsane);
+    const responseInsane = ratingResponse(ratingInsane);
     expect(responseInsane).toContain("Risk Rating: 6 or more; review/deny cover.");
   });
 });
