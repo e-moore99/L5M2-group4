@@ -5,12 +5,12 @@ const app = require("./claims");
 
 const {} = require("./claims");
 
-// returns array without punctuation, capitals or numbers
-describe("cleanedText function", () => {
-  it("should convert text to lowercase and remove punctuation", () => {
+// returns array without capitals, punctuation, numbers or spaces
+describe("cleanText function", () => {
+  it("should convert input to lowercase then remove punctuation, symbols, numerals and spaces", () => {
     const input = "CraSH! Sma4sh3, sM4sh, Collided? coll.ide";
     const expected = ["crash", "smash", "smsh", "collided", "collide"];
-    expect(app.cleanedText(input)).toEqual(expected);
+    expect(app.cleanText(input)).toEqual(expected);
   });
 });
 
@@ -33,7 +33,7 @@ describe("claimsRating function", () => {
   });
 });
 
-// matches the rating to an appropriate response
+// matches the rating to a descriptive response
 describe("ratingResponse function", () => {
   it("should return a 'Risk Rating: (rating)' if the rating equals 1 to 5", () => {
     const ratingLow = 1;
@@ -49,10 +49,10 @@ describe("ratingResponse function", () => {
     expect(responseHigh).toContain("Risk Rating: 5");
   });
 
-  it("should return 'No claims keywords detected' if the rating equals 0", () => {
+  it("should return 'No claims keywords found' if the rating equals 0", () => {
     const ratingNone = 0;
     const responseNone = app.ratingResponse(ratingNone);
-    expect(responseNone).toContain("No claims keywords detected.");
+    expect(responseNone).toContain("No claims keywords found.");
   });
 
   it("should return 'Risk Rating: 6 or more; review/deny cover' if the rating is more than 5", () => {
@@ -80,13 +80,13 @@ describe("claims keyword detection API", () => {
   });
 
   // valid but not ideal: non-keywords that declare claim history, or misspelled keyword
-  it("should return a risk rating for 1-5 keywords that match exactly, excluding similar but misspelled words", async () => {
+  it("should return a risk rating for 1-5 keywords that match exactly, excluding misspelled words", async () => {
     const response = await request(app).post("/submit-claims-history").send({
       text: "I drove my ute into the median, smashed into a trailer, and scrached against the safety barreir",
     });
 
     expect(response.status).toBe(200);
-    expect(response.body.rating).toBe(1); // "drove" & "scrached" are invalid
+    expect(response.body.rating).toBe(1); // "smashed" is the only valid keyword
   });
 
   // invalid: sent correct data type & acceptable input, but no keywords present
@@ -106,7 +106,7 @@ describe("claims keyword detection API", () => {
     });
 
     expect(response.status).toBe(400);
-    expect(response.body.message).toBe("6 or more claims keywords found; decline cover.");
+    expect(response.body.message).toBe("Risk Rating: 6 or more; review/deny cover.");
   });
 
   // invalid: correct data type but nonsensical content
