@@ -1,9 +1,7 @@
 const request = require("supertest");
-const { app } = require(".");
+const { app, server, cleanText, claimsRating, ratingResponse } = require("./backend");
 
 // ! these are unit tests for function in claims.js
-
-const { cleanText, claimsRating, ratingResponse } = require(".");
 
 // returns array without capitals, punctuation, numbers or spaces
 describe("cleanText function", () => {
@@ -13,8 +11,13 @@ describe("cleanText function", () => {
     expect(cleanText(input)).toEqual(expected);
   });
   it("should return an empty array if input contains only unacceptable characters", () => {
-    const input = "@#*&%@#(%";
+    const input = "@#*&%@112#(%,"; // all non-alphabet characters are cleaned out
     const expected = [];
+    expect(cleanText(input)).toEqual(expected);
+  });
+  it("should be incapable of parsing otherwise valid keywords if there are spaces in between", () => {
+    const input = "coll  ide with a truck, sma shed, bump";
+    const expected = ["coll", "ide", "with", "a", "truck", "sma", "shed", "bump"]; // "coll  ide" -> "coll", "ide"
     expect(cleanText(input)).toEqual(expected);
   });
 });
@@ -134,9 +137,4 @@ describe("claims keyword detection API", () => {
   //   expect(response.status).toBe(400);
   //   expect(response.body.message).toBe("Input must be text only.");
   // });
-});
-
-// ensure the server shuts down after tests to prevent leaking
-afterAll(() => {
-  server.close();
 });

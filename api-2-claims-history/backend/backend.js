@@ -1,12 +1,23 @@
 const express = require("express");
 const cors = require("cors");
-const http = require("http");
+const path = require("path");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, "../src")));
 
-// keywords as laid out in requirements, including some common variants
+// TODO: update Azure's .env
+
+// configuration
+const ORIGIN = process.env.FRONTEND_URL || "http://localhost:5173";
+const PORT = process.env.PORT || 0; // allow dynamic port assignment for testing
+
+// moved to claims.js
+// const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:4000";
+// const ENDPOINT = "/submit-claims-history"; // delete slash if BACKEND_URL has one
+
+// keywords as laid out in requirements, including some common variants. not ideal, but alternative is rapid scope creep
 const keywords = [
   "collide", // required
   "collided",
@@ -31,6 +42,38 @@ const response = {
   deny: "Risk Rating: 6 or more; review/deny cover.", // 6+ keywords
   accept: (rating) => `Risk Rating: ${rating}`, // 1 - 5 keywords
 };
+
+// ! functions
+
+// * submission handler - moved to claims.js, keeping here because i'm sentimental
+
+// async function submitForm(event) {
+//   event.preventDefault(); // classic
+
+//   const claimsInput = document.getElementById("claimsInput");
+//   const responseDiv = document.getElementById("responseDiv");
+//   const text = claimsInput.value;
+
+//   responseDiv.textContent = ""; // clears response display (divsplay?)
+
+//   try {
+//     const res = await fetch(`${BACKEND_URL}${ENDPOINT}`, {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({ text }),
+//     });
+
+//     const data = await res.json();
+
+//     if (res.ok) {
+//       responseDiv.textContent = `🎉 Response: ${data.message}`;
+//     } else {
+//       responseDiv.textContent = `🔥 Response: ${data.message}`;
+//     }
+//   } catch (error) {
+//     responseDiv.textContent = `Error on submit: ${error.message} `;
+//   }
+// }
 
 // parent function that chains together validation, cleanup, rating & response steps
 const evaluate = (req, res) => {
@@ -75,10 +118,10 @@ const cleanText = (text) => {
   return text
     .toLowerCase()
     .trim()
-    .replace(/[^\sa-z]/g, "")
-    .replace(/\s+/g, " ")
-    .split(" ")
-    .filter((word) => word !== "");
+    .replace(/[^\sa-z]/g, "") // removes unacceptable characters
+    .replace(/\s+/g, " ") // collapses double spaces (\s+) into one space
+    .split(" ") // splits words
+    .filter((word) => word !== ""); // intervenes if character removal resulted in an empty string
 };
 
 // child: counts how many words in the cleaned input array match the keywords array
@@ -105,23 +148,20 @@ const ratingResponse = (rating) => {
   return response.accept(rating); // Call the dynamic response function
 };
 
-// ! ⚠️ for testing functions
-module.exports = { app, cleanText, claimsRating, ratingResponse };
-
-// ! ⚠️ refactor below once hosted
-const origin = "http://localhost:5173";
-
 app.use(
   cors({
-    origin,
+    origin: ORIGIN,
   })
 );
 
-// hardcoded for simplicity
-const PORT = 4000;
 const server = app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
+  const port = server.address().port; // checks what port was assigned or is currently set
+  console.log(`server listening on port ${port}`);
 });
 
 // * can be refactored later if shifting from inline to modular scripts; this'll do for now
+
 app.post("/submit-claims-history", evaluate);
+
+// ! ⚠️ for testing functions
+module.exports = { app, server, cleanText, claimsRating, ratingResponse };
