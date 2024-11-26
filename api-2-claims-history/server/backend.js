@@ -3,15 +3,25 @@ const cors = require("cors");
 const path = require("path");
 
 const app = express();
-app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../src")));
 
 // TODO: update Azure's .env
 
 // configuration
-const ORIGIN = process.env.FRONTEND_URL || "http://localhost:5173";
-const PORT = process.env.PORT || 0; // allow dynamic port assignment for testing
+const ORIGIN = process.env.FRONTEND_URL || "http://localhost:3000";
+const PORT = process.env.PORT || 4000;
+
+app.use(
+  cors({
+    origin: ORIGIN,
+  })
+);
+
+const server = app.listen(PORT, () => {
+  const port = server.address().port; // checks what port was assigned or is currently set
+  console.log(`server listening on port ${port}`);
+});
 
 // moved to claims.js
 // const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:4000";
@@ -147,17 +157,6 @@ const ratingResponse = (rating) => {
   if (rating >= 6) return response.deny;
   return response.accept(rating); // Call the dynamic response function
 };
-
-app.use(
-  cors({
-    origin: ORIGIN,
-  })
-);
-
-const server = app.listen(PORT, () => {
-  const port = server.address().port; // checks what port was assigned or is currently set
-  console.log(`server listening on port ${port}`);
-});
 
 // * can be refactored later if shifting from inline to modular scripts; this'll do for now
 
