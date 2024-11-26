@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const http = require("http");
 
 const app = express();
 app.use(cors());
@@ -31,7 +32,7 @@ const response = {
   accept: (rating) => `Risk Rating: ${rating}`, // 1 - 5 keywords
 };
 
-// ! function that chains together validation, cleanup, rating & response steps
+// parent function that chains together validation, cleanup, rating & response steps
 const evaluate = (req, res) => {
   // extracts input text from request
   const { text } = req.body;
@@ -55,7 +56,7 @@ const evaluate = (req, res) => {
   return res.status(rating >= 6 ? 400 : 200).send({ message, rating });
 };
 
-// checks if data is empty or otherwise unacceptable, returns error if so, otherwise does nothing
+// child: checks if data is empty or otherwise unacceptable, returns error if so, otherwise does nothing
 const validateText = (text) => {
   if (!text) {
     return "Missing input.";
@@ -69,16 +70,18 @@ const validateText = (text) => {
   return null; // 🐧'you didn't see anything'🐧🐧
 };
 
-// strips out numbers, punctuation & spaces, enforces lowercase
+// child: enforces lowercase; strips out numbers, punctuation & special characters; collapses double spaces; then filters out input if all that remains is empty space. this should address common edge cases without creating keyword bloat
 const cleanText = (text) => {
   return text
     .toLowerCase()
     .trim()
     .replace(/[^\sa-z]/g, "")
-    .split(/\s+/); // should handle multi-spaces as well
+    .replace(/\s+/g, " ")
+    .split(" ")
+    .filter((word) => word !== "");
 };
 
-// counts how many words in the cleaned input array match the keywords array
+// child: counts how many words in the cleaned input array match the keywords array
 const claimsRating = (words) => {
   // reduce() is forEach()'s antisocial, tally-obsessed sibling. where forEach() just iterates its logic over an array then carries on, reduce() iterates while clutching a tally board (the 'accumulator', here called 'count'). it updates this tally as it iterates, and when it's done, slams the door on the array, hands you the tally board, then walks off without a word.
   return words.reduce((count, word) => {
@@ -95,12 +98,30 @@ const claimsRating = (words) => {
 // disclaimer: don't worry future me, reduce() isn't destructive, just very rude. the array it works over remains unharmed.
 // thanks freecodecamp
 
-// attaches a response message to the rating
+// child: attaches a response message to the rating
 const ratingResponse = (rating) => {
   if (rating === 0) return response.none;
   if (rating >= 6) return response.deny;
   return response.accept(rating); // Call the dynamic response function
 };
 
-// ! for testing functions ⚠️
-module.exports = { cleanText, claimsRating, ratingResponse };
+// ! ⚠️ for testing functions
+module.exports = { app, cleanText, claimsRating, ratingResponse };
+
+// ! ⚠️ refactor below once hosted
+const origin = "http://localhost:5173";
+
+app.use(
+  cors({
+    origin,
+  })
+);
+
+// hardcoded for simplicity
+const PORT = 4000;
+const server = app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
+});
+
+// * can be refactored later if shifting from inline to modular scripts; this'll do for now
+app.post("/submit-claims-history", evaluate);

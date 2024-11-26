@@ -1,15 +1,20 @@
 const request = require("supertest");
-const app = require("./claims");
+const { app } = require(".");
 
 // ! these are unit tests for function in claims.js
 
-const { cleanText, claimsRating, ratingResponse } = require("./claims");
+const { cleanText, claimsRating, ratingResponse } = require(".");
 
 // returns array without capitals, punctuation, numbers or spaces
 describe("cleanText function", () => {
   it("should convert input to lowercase then remove punctuation, symbols, numerals and spaces", () => {
     const input = "CraSH! Sma4sh3, sM4sh, Collided? coll.ide";
     const expected = ["crash", "smash", "smsh", "collided", "collide"];
+    expect(cleanText(input)).toEqual(expected);
+  });
+  it("should return an empty array if input contains only unacceptable characters", () => {
+    const input = "@#*&%@#(%";
+    const expected = [];
     expect(cleanText(input)).toEqual(expected);
   });
 });
@@ -70,7 +75,7 @@ describe("ratingResponse function", () => {
 
 describe("claims keyword detection API", () => {
   // ideal input: keywords are "collide", "crash", "scratch", "bump", and "smash", assuming variants such as tense or plural versions are counted
-  it("should return a risk rating for 1-5 keywords", async () => {
+  it("should return 200 & a risk rating for 1-5 keywords", async () => {
     const response = await request(app).post("/submit-claims-history").send({
       text: "My only claim was a crash into my house's garage door that left a scratch on my car. There are no other crashes.",
     });
@@ -80,7 +85,7 @@ describe("claims keyword detection API", () => {
   });
 
   // valid but not ideal: non-keywords that declare claim history, or misspelled keyword
-  it("should return a risk rating for 1-5 keywords that match exactly, excluding misspelled words", async () => {
+  it("should return 200 & a risk rating for 1-5 keywords that match exactly, excluding misspelled words", async () => {
     const response = await request(app).post("/submit-claims-history").send({
       text: "I drove my ute into the median, smashed into a trailer, and scrached against the safety barreir",
     });
@@ -89,18 +94,18 @@ describe("claims keyword detection API", () => {
     expect(response.body.rating).toBe(1); // "smashed" is the only valid keyword
   });
 
-  // invalid: sent correct data type & acceptable input, but no keywords present
-  it("should return 'No claims keywords found' if there are 0 keywords", async () => {
+  // valid: sent correct data type & acceptable input, but no keywords present
+  it("should return 200 & 'No claims keywords found' if there are no keywords", async () => {
     const response = await request(app)
       .post("/submit-claims-history")
       .send({ text: "Actually, I've had seven at-fault accident claims in the past month." });
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(200);
     expect(response.body.message).toBe("No claims keywords found.");
   });
 
   // invalid: detected keywords > 5
-  it("should return, '6 or more claims keywords found; decline cover' if there are 6+ keywords", async () => {
+  it("should return 400 & '6 or more claims keywords found; decline cover' if there are 6+ keywords", async () => {
     const response = await request(app).post("/submit-claims-history").send({
       text: "There was a crash, saw two cars collide, not just bump but smash, also my cat scratched me. But yeah, boom! Crash, smash! Wasn't me though.",
     });
@@ -110,10 +115,10 @@ describe("claims keyword detection API", () => {
   });
 
   // invalid: correct data type but nonsensical content
-  it("should return, 'No claims keywords found.' if input is garbage", async () => {
+  it("should return 200 & 'No claims keywords found.' if input is garbage", async () => {
     const response = await request(app).post("/submit-claims-history").send({ text: "sadasfadaasf cthulhufhtagn" });
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(200);
     expect(response.body.message).toBe("No claims keywords found.");
   });
 
@@ -129,4 +134,9 @@ describe("claims keyword detection API", () => {
   //   expect(response.status).toBe(400);
   //   expect(response.body.message).toBe("Input must be text only.");
   // });
+});
+
+// ensure the server shuts down after tests to prevent leaking
+afterAll(() => {
+  server.close();
 });

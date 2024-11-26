@@ -11,6 +11,6 @@
   "scripts": {
     "start": "node claims.js",
     "dev": "nodemon claims.js",
-    "test": "jest --watchAll --verbose"
+    "test": "jest --watchAll --verbose --detectOpenHandles"
   }
 }
