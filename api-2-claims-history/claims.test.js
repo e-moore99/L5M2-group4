@@ -14,7 +14,7 @@ describe("cleanedText function", () => {
   });
 });
 
-// returns a count of how many input elements match an element in the keyword array as 'rating'
+// counts input elements that match keyword array & returns that as a rating
 describe("claimsRating function", () => {
   it("should count elements that equal those in the keyword array while ignoring all else", () => {
     const input = ["i", "crashed", "bucket", "smash", "smsh", "collided", "collide", "collider"];
@@ -33,6 +33,7 @@ describe("claimsRating function", () => {
   });
 });
 
+// matches the rating to an appropriate response
 describe("ratingResponse function", () => {
   it("should return a 'Risk Rating: (rating)' if the rating equals 1 to 5", () => {
     const ratingLow = 1;
@@ -70,7 +71,7 @@ describe("ratingResponse function", () => {
 describe("claims keyword detection API", () => {
   // ideal input: keywords are "collide", "crash", "scratch", "bump", and "smash", assuming variants such as tense or plural versions are counted
   it("should return a risk rating for 1-5 keywords", async () => {
-    const response = await request(app).post("/endpoint-goes-here⚠️").send({
+    const response = await request(app).post("/submit-claims-history").send({
       text: "My only claim was a crash into my house's garage door that left a scratch on my car. There are no other crashes.",
     });
 
@@ -80,7 +81,7 @@ describe("claims keyword detection API", () => {
 
   // valid but not ideal: non-keywords that declare claim history, or misspelled keyword
   it("should return a risk rating for 1-5 keywords that match exactly, excluding similar but misspelled words", async () => {
-    const response = await request(app).post("/endpoint-goes-here⚠️").send({
+    const response = await request(app).post("/submit-claims-history").send({
       text: "I drove my ute into the median, smashed into a trailer, and scrached against the safety barreir",
     });
 
@@ -91,7 +92,7 @@ describe("claims keyword detection API", () => {
   // invalid: sent correct data type & acceptable input, but no keywords present
   it("should return 'No claims keywords found' if there are 0 keywords", async () => {
     const response = await request(app)
-      .post("/endpoint-goes-here⚠️")
+      .post("/submit-claims-history")
       .send({ text: "Actually, I've had seven at-fault accident claims in the past month." });
 
     expect(response.status).toBe(400);
@@ -100,7 +101,7 @@ describe("claims keyword detection API", () => {
 
   // invalid: detected keywords > 5
   it("should return, '6 or more claims keywords found; decline cover' if there are 6+ keywords", async () => {
-    const response = await request(app).post("/endpoint-goes-here⚠️").send({
+    const response = await request(app).post("/submit-claims-history").send({
       text: "There was a crash, saw two cars collide, not just bump but smash, also my cat scratched me. But yeah, boom! Crash, smash! Wasn't me though.",
     });
 
@@ -110,21 +111,22 @@ describe("claims keyword detection API", () => {
 
   // invalid: correct data type but nonsensical content
   it("should return, 'No claims keywords found.' if input is garbage", async () => {
-    const response = await request(app).post("/endpoint-goes-here⚠️").send({ text: "sadasfadaasf cthulhufhtagn" });
+    const response = await request(app).post("/submit-claims-history").send({ text: "sadasfadaasf cthulhufhtagn" });
 
     expect(response.status).toBe(400);
     expect(response.body.message).toBe("No claims keywords found.");
   });
 
-  // * below can be made redundant--retain or use regex?
+  // ? below can be made redundant--retain or use regex?
+  // * regex
 
-  // invalid: no numbers or special characters
-  it("should return 'Input must be text only.' if there are numbers in input", async () => {
-    const response = await request(app)
-      .post("/endpoint-goes-here⚠️")
-      .send({ text: "Been in 1 crash back in 4 March 2024." }); // could be split into two tests, one for a number and another for special characters
+  // // invalid: no numbers or special characters
+  // it("should return 'Input must be text only.' if there are numbers in input", async () => {
+  //   const response = await request(app)
+  //     .post("/submit-claims-history")
+  //     .send({ text: "Been in 1 crash back in 4 March 2024." }); // could be split into two tests, one for a number and another for special characters
 
-    expect(response.status).toBe(400);
-    expect(response.body.message).toBe("Input must be text only.");
-  });
+  //   expect(response.status).toBe(400);
+  //   expect(response.body.message).toBe("Input must be text only.");
+  // });
 });
