@@ -1,32 +1,71 @@
 const request = require("supertest");
 const app = require("./claims");
 
-/*
-Requirements to test for: 
+// ! these are unit tests for each function in claims.js
 
-> Input must be a JSON obj containing 'text:' key with a string value.
+const {} = require("./claims");
 
-1. Validation step: invalidate if
-	- data missing (no 'text:' key)
-	- empty
-	- too large strings
-	- non-string inputs
-	- special characters and/or numbers.
+// returns array without punctuation, capitals or numbers
+describe("cleanedText function", () => {
+  it("should convert text to lowercase and remove punctuation", () => {
+    const input = "CraSH! Sma4sh3, sM4sh, Collided? coll.ide";
+    const expected = ["crash", "smash", "smsh", "collided", "collide"];
+    expect(app.cleanedText(input)).toEqual(expected);
+  });
+});
 
-1.a. Return error indicating why input is unacceptable; 'input required' or '... must not be empty', 'input exceeds maximum length'.
+// returns a count of how many input elements match an element in the keyword array as 'rating'
+describe("claimsRating function", () => {
+  it("should count elements that equal those in the keyword array while ignoring all else", () => {
+    const input = ["i", "crashed", "bucket", "smash", "smsh", "collided", "collide", "collider"];
+    const rating = app.claimsRating(input);
+    expect(rating).toEqual(4);
+  });
+  it("should count valid elements even if they are repeated", () => {
+    const input = ["crash", "crash", "smash", "crash", "scratched"];
+    const rating = app.claimsRating(input);
+    expect(rating).toEqual(5);
+  });
+  it("should return a count of 0 if an array is sent but no keywords match", () => {
+    const input = ["apple", "mango", "banana"];
+    const rating = app.claimsRating(input);
+    expect(rating).toEqual(0);
+  });
+});
 
-2. Clean up valid input for processing: trim -> lowercase -> split.
+describe("ratingResponse function", () => {
+  it("should return a 'Risk Rating: (rating)' if the rating equals 1 to 5", () => {
+    const ratingLow = 1;
+    const responseLow = app.ratingResponse(ratingLow);
+    expect(responseLow).toContain("Risk Rating: 1");
 
-3. Keyword identification: find only predefined keywords: "collide", "crash", "scratch", "bump", and "smash". Include common variants with minor differences (tense or plural forms), i.e. "collided", "crashed", "bumps", "smashes"--though for simplicity we won't include all possible variants. Ignore all other words.
+    const ratingMid = 3;
+    const responseMid = app.ratingResponse(ratingMid);
+    expect(responseMid).toContain("Risk Rating: 3");
 
-4. Counting keywords: return 'rating' value of 1-5 based on how many keywords were in supplied input, including repeats, i.e, 'I crashed, but the crash wasn't my fault' should return a rating of 2.
+    const ratingHigh = 5;
+    const responseHigh = app.ratingResponse(ratingHigh);
+    expect(responseHigh).toContain("Risk Rating: 5");
+  });
 
-5. Evaluate unacceptable 'ratings': invalidate input if number of keywords falls outside 1-5 boundary.
+  it("should return 'No claims keywords detected' if the rating equals 0", () => {
+    const ratingNone = 0;
+    const responseNone = app.ratingResponse(ratingNone);
+    expect(responseNone).toContain("No claims keywords detected.");
+  });
 
-4.b. Return error distinct from the first validation step to make clear error is related to the number of keywords found--none or too many.
-*/
+  it("should return 'Risk Rating: 6 or more; review/deny cover' if the rating is more than 5", () => {
+    const ratingTooHigh = 6;
+    const responseTooHigh = app.ratingResponse(ratingTooHigh);
+    expect(responseTooHigh).toContain("Risk Rating: 6 or more; review/deny cover.");
 
-// ! these are test cases for possible input payloads
+    const ratingInsane = 12;
+    const responseInsane = app.ratingResponse(ratingInsane);
+    expect(responseInsane).toContain("Risk Rating: 6 or more; review/deny cover.");
+  });
+});
+
+// ! these are API tests for possible input payloads
 
 describe("claims keyword detection API", () => {
   // ideal input: keywords are "collide", "crash", "scratch", "bump", and "smash", assuming variants such as tense or plural versions are counted
@@ -77,7 +116,7 @@ describe("claims keyword detection API", () => {
     expect(response.body.message).toBe("No claims keywords found.");
   });
 
-  // * note that the below tests will be rendered superfluous if a regex is used as part of the input validation step, but we'll keep these in and not use regex to focus on the remit of the mission--demonstrate TDD
+  // * below can be made redundant--retain or use regex?
 
   // invalid: no numbers or special characters
   it("should return 'Input must be text only.' if there are numbers in input", async () => {
