@@ -1,11 +1,11 @@
 // * strips input down to nothing but a lowercase text array
 
-export default function cleanText(text) {
+module.exports = function cleanText(text) {
   return text
     .toLowerCase()
     .trim()
-    .replace(/[^\sa-z]/g, "") // removes all but lowercase letters & spaces
-    .replace(/\s+/g, " ") // collapses multispaces (\s+)
+    .replace(/[^\sa-z]/g, "")
+    .replace(/\s+/g, " ")
     .split(" ")
-    .filter((word) => word !== ""); // intervenes if cleanup results in empty string
-}
+    .filter((word) => word !== "");
+};

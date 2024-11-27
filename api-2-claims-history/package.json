@@ -9,7 +9,7 @@
     "start": "nodemon src/backend/server.js",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "npx jest src/backend --watchAll --verbose --detectOpenHandles"
+    "test": "jest src/backend --watchAll --verbose --detectOpenHandles"
   },
   "dependencies": {
     "cors": "^2.8.5",

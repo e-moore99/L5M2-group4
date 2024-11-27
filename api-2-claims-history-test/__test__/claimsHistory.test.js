@@ -1,6 +1,14 @@
 const request = require("supertest");
-const { app } = require("../server");
+const app = require("../server");
 const { cleanText, claimsRating, ratingResponse } = require("../components");
+let server;
+
+beforeAll((done) => {
+  server = app.listen(0, () => {
+    console.log("test server running");
+    done();
+  });
+});
 
 // ! 🔧 these are unit tests for individual functions
 
@@ -125,17 +133,11 @@ describe("claims keyword detection API", () => {
     expect(response.status).toBe(200);
     expect(response.body.message).toBe("No claims keywords found.");
   });
+});
 
-  // ? below can be made redundant--retain or use regex?
-  // * regex
-
-  // // invalid: no numbers or special characters
-  // it("should return 'Input must be text only.' if there are numbers in input", async () => {
-  //   const response = await request(app)
-  //     .post("/submit-claims-history")
-  //     .send({ text: "Been in 1 crash back in 4 March 2024." }); // could be split into two tests, one for a number and another for special characters
-
-  //   expect(response.status).toBe(400);
-  //   expect(response.body.message).toBe("Input must be text only.");
-  // });
+afterAll((done) => {
+  server.close(() => {
+    console.log("test server stopped");
+    done();
+  });
 });

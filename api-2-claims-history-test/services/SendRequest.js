@@ -1,18 +1,16 @@
 // * subordinate of SubmitForm; sends data, serves response
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000"; // ! update .env on deployment
+const BACKEND_URL = process.env.VITE_BACKEND_URL || "http://localhost:4000"; // ! update .env on deployment
 
-export async function SendRequest(endpoint, payload) {
-  // 🚦 formats the endpoint
+module.exports = async function SendRequest(endpoint, payload) {
   const fullUrl = `${BACKEND_URL}${endpoint}`;
-  // 📦 formats the input data
+
   const options = {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   };
 
-  // 🚚 sends data through to endpoint & unpacks response
   try {
     const res = await fetch(fullUrl, options);
     const data = await res.json();
@@ -21,4 +19,4 @@ export async function SendRequest(endpoint, payload) {
     console.error("Fetch error:", error);
     return { ok: false, message: "Error on fetch attempt." };
   }
-}
+};

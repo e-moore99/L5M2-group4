@@ -1,0 +1,20 @@
+{
+  "name": "api-2-claims-history-test",
+  "version": "1.0.0",
+  "main": "Evaluate.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0"
+  },
+  "scripts": {
+    "test": "jest api-2-claims-history-test/__test__/claimsHistory.test.js --watchAll --verbose --detectOpenHandles",
+    "start": "node server.js"
+  }
+}

@@ -1,8 +1,8 @@
 // * checks if data is not in the payload, is empty, or is too long; returns error if so, otherwise does nothing
 
-const maxLength = 1000; // adjust if form's input limit changes
+const maxLength = 1000;
 
-export default function validateText(text) {
+module.exports = function validateText(text) {
   if (!text) {
     return "Missing input.";
   }
@@ -10,7 +10,7 @@ export default function validateText(text) {
     return "Empty input is not allowed.";
   }
   if (text.length > maxLength) {
-    return `Input exceeds character limit of ${maxLength}.`; // should normally never come up as text input has maxLength="1000"
+    return `Input exceeds character limit of ${maxLength}.`;
   }
-  return null; // 🐧'you didn't see anything'🐧🐧
-}
+  return null;
+};
