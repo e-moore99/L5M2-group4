@@ -1,9 +1,9 @@
 // * receives input data and chains validation, cleanup, rating & responding
 
-import { validateText } from "./components/ValidateText";
-import { cleanText } from "./components/CleanText";
-import { claimsRating } from "./components/ClaimsRating";
-import { ratingResponse } from "./components/RatingResponse";
+import validateText from "./components/ValidateText.js";
+import cleanText from "./components/CleanText.js";
+import claimsRating from "./components/ClaimsRating.js";
+import ratingResponse from "./components/RatingResponse.js";
 
 export default function Evaluate(req, res) {
   // 📦➡️📄 extracts input text from request
