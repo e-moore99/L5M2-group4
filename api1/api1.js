@@ -42,15 +42,12 @@ app.post("/api1", (req, res) => {
   let insuranceCost = 0;
   let model = req.body.model;
   let year = req.body.year;
-  // console.log(`model: ` + model);
   if (!regExYear.test(String(year))) {
-    console.log("error");
     return res.sendStatus(400).send("error: invalid model input");
   }
 
   // regex is designed for strings so the String() is to run the year through it in an accepted format
   if (regExModel.test(model)) {
-    console.log("error");
     return res.sendStatus(400).send("error: invalid year input");
   }
   let carModel = model.toLowerCase().split("");
@@ -67,13 +64,11 @@ app.post("/api1", (req, res) => {
   }
 
   insuranceCost = output * 100 + year;
-  console.log(`insurance cost` + insuranceCost);
 
   res.send(
     `The premium estimate for your ${year} ${model} is $${insuranceCost}.`
   );
   const body = req.body;
-  console.log(body);
   res.json(body);
 });
 
