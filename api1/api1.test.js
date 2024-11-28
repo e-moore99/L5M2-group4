@@ -1,4 +1,3 @@
-// setting up unit tests for API 1 - convert 'model' and 'year' into car value
 const app = require('api1')
 const request = require('supertest')
 
